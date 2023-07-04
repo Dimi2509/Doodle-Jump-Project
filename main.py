@@ -15,6 +15,9 @@ pygame.display.set_caption("Doodle - Game")
 clock = pygame.time.Clock()
 FPS = 60
 
+# Game variables
+GRAVITY = 1
+
 # Colours
 WHITE = (255,255,255)
 
@@ -29,6 +32,7 @@ class Doodle():
         self.height = 40
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.center = (x, y)
+        self.vel_y = 0
         self.flip = False
 
     def move(self):
@@ -46,11 +50,20 @@ class Doodle():
             dx = 10
             self.flip = False
 
+        # Gravity
+        self.vel_y += GRAVITY
+        dy += self.vel_y
+
         # Limit Screen
         if self.rect.left + dx < 0:
             dx = - self.rect.left
         if self.rect.right + dx > SCREEN_WIDTH:
             dx = SCREEN_WIDTH - self.rect.right
+
+        # Limit Screen Ground
+        if self.rect.bottom + dy > SCREEN_HEIGHT:
+            dy = 0
+            self.vel_y = -20
 
         # Update rectangle position
         self.rect.x += dx
