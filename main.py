@@ -23,7 +23,7 @@ MAX_PLATFORMS = 10
 
 # Colours
 WHITE = (255,255,255)
-
+RED = (255,0,0)
 # Load images
 background_img = pygame.image.load("img/background.png").convert_alpha()
 doodle_img = pygame.image.load("img/doodle.png").convert_alpha()
@@ -60,10 +60,12 @@ class Doodle():
 
         # Limit Screen
         if self.rect.left + dx < 0:
-            dx = - self.rect.left
+            dx = self.rect.left
         if self.rect.right + dx > SCREEN_WIDTH:
             dx = SCREEN_WIDTH - self.rect.right
 
+        #print(self.rect.left," ", self.rect.right)
+        
         # Platform Collision
         for platform in platform_group:
             # Collision in the y direcction
@@ -87,6 +89,8 @@ class Doodle():
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False),(self.rect.x - 20, self.rect.y - 15))
         pygame.draw.rect(screen , WHITE, self.rect, 2)
+        pygame.draw.circle(screen, RED, self.rect.center, 2)
+        pygame.draw.circle(screen, RED, self.rect.topright, 2)
 
 # Platform class
 class Platform(pygame.sprite.Sprite):
@@ -108,7 +112,7 @@ platform_group = pygame.sprite.Group()
 # Create Temporary Platforms
 for p in range(MAX_PLATFORMS):
     p_w = random.randint(40, 60)
-    p_x = random.randint(0, SCREEN_WIDTH)
+    p_x = random.randint(0, SCREEN_WIDTH-p_w)
     p_y = p * random.randint(80, 120)
     platform = Platform(p_x, p_y, p_w)
     platform_group.add(platform)
