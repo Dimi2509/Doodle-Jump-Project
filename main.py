@@ -20,6 +20,7 @@ FPS = 60
 # Game variables
 GRAVITY = 1
 MAX_PLATFORMS = 10
+SCROLL_THRESH = 275
 
 # Colours
 WHITE = (255,255,255)
@@ -44,7 +45,7 @@ class Doodle():
         # Reset Variables
         dx = 0
         dy = 0
-        
+        scroll = 0
         # Keeypresses
         key = pygame.key.get_pressed()
         if key[pygame.K_LEFT]:
@@ -70,7 +71,7 @@ class Doodle():
         for platform in platform_group:
             # Collision in the y direcction
             if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-                # Check if above platform
+                # Apply collision only when falling
                 if self.rect.bottom < platform.rect.centery:
                     if self.vel_y > 0:
                         self.rect.bottom = platform.rect.top
@@ -81,10 +82,19 @@ class Doodle():
         if self.rect.bottom + dy > SCREEN_HEIGHT:
             dy = 0
             self.vel_y = -20
+        
+        # Scroll scenario
+        if self.rect.top <= SCROLL_THRESH:
+            if self.vel_y < 0:
+                # Move platforms opposite to player movement only when going up
+                scroll = -dy
 
         # Update rectangle position
         self.rect.x += dx
         self.rect.y += dy
+
+        return scroll
+    
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False),(self.rect.x - 20, self.rect.y - 15))
@@ -101,6 +111,8 @@ class Platform(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+    def update(self, scroll):
+        self.rect.y += scroll
 
 
 # Player Instance
@@ -124,15 +136,16 @@ while running:
     # Setting FPS limit
     clock.tick(FPS)
 
-    # Move Character
-    doodler.move()
-
     # Draw Background
     screen.blit(background_img, (0, 0))
+
+    # Move Character
+    scroll = doodler.move()
 
     # Draw Character
     platform_group.draw(screen)
     doodler.draw()
+    platform_group.update(scroll)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
