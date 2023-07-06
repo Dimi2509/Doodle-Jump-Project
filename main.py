@@ -19,8 +19,8 @@ FPS = 60
 
 # Game variables
 GRAVITY = 1
-MAX_PLATFORMS = 10
-SCROLL_THRESH = 275
+MAX_PLATFORMS = 6
+SCROLL_THRESH = 225
 
 # Colours
 WHITE = (255,255,255)
@@ -29,6 +29,15 @@ RED = (255,0,0)
 background_img = pygame.image.load("img/background.png").convert_alpha()
 doodle_img = pygame.image.load("img/doodle.png").convert_alpha()
 platform_image = pygame.image.load("img/green_plataform.png").convert_alpha()
+
+def create_platform(platform):
+    p_w = random.randint(40, 60)
+    p_x = random.randint(0, SCREEN_WIDTH-p_w)
+    p_y = platform.rect.y - random.randint(80, 120)
+    platform = Platform(p_x, p_y, p_w)
+
+    return platform
+
 
 class Doodle():
     def __init__(self, x ,y):
@@ -41,7 +50,6 @@ class Doodle():
         self.flip = False
 
     def move(self):
-
         # Reset Variables
         dx = 0
         dy = 0
@@ -91,16 +99,16 @@ class Doodle():
 
         # Update rectangle position
         self.rect.x += dx
-        self.rect.y += dy
+        self.rect.y += dy + scroll
 
         return scroll
     
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False),(self.rect.x - 20, self.rect.y - 15))
-        pygame.draw.rect(screen , WHITE, self.rect, 2)
-        pygame.draw.circle(screen, RED, self.rect.center, 2)
-        pygame.draw.circle(screen, RED, self.rect.topright, 2)
+        # pygame.draw.rect(screen , WHITE, self.rect, 2)
+        # pygame.draw.circle(screen, RED, self.rect.center, 2)
+        # pygame.draw.circle(screen, RED, self.rect.topright, 2)
 
 # Platform class
 class Platform(pygame.sprite.Sprite):
@@ -114,6 +122,9 @@ class Platform(pygame.sprite.Sprite):
     def update(self, scroll):
         self.rect.y += scroll
 
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
 
 # Player Instance
 doodler = Doodle(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
@@ -121,13 +132,9 @@ doodler = Doodle(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
 # Create Sprite Groups
 platform_group = pygame.sprite.Group()
 
-# Create Temporary Platforms
-for p in range(MAX_PLATFORMS):
-    p_w = random.randint(40, 60)
-    p_x = random.randint(0, SCREEN_WIDTH-p_w)
-    p_y = p * random.randint(80, 120)
-    platform = Platform(p_x, p_y, p_w)
-    platform_group.add(platform)
+# Create starting platform
+platform = Platform(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 50, 100)
+platform_group.add(platform)
 
 # Game loop
 running = True
@@ -142,9 +149,15 @@ while running:
     # Move Character
     scroll = doodler.move()
 
+    # Create new platforms
+    if len(platform_group) < MAX_PLATFORMS:
+        platform = create_platform(platform)
+        platform_group.add(platform)
+
     # Draw Character
     platform_group.draw(screen)
     doodler.draw()
+    
     platform_group.update(scroll)
 
     for event in pygame.event.get():
