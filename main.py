@@ -29,12 +29,18 @@ RED = (255,0,0)
 background_img = pygame.image.load("img/background.png").convert_alpha()
 doodle_img = pygame.image.load("img/doodle.png").convert_alpha()
 platform_image = pygame.image.load("img/green_plataform.png").convert_alpha()
+blue_platform_image = pygame.image.load("img/blue_plataform.png").convert_alpha()
 
 def create_platform(platform):
     p_w = random.randint(40, 60)
     p_x = random.randint(0, SCREEN_WIDTH-p_w)
     p_y = platform.rect.y - random.randint(80, 120)
-    platform = Platform(p_x, p_y, p_w)
+
+    # 80 20 % to spawn green and blue platforms respectively
+    if random.random() < 0.8:
+        platform = Platform(p_x, p_y, p_w)
+    else:
+        platform = BluePlatform(p_x, p_y, p_w)
 
     return platform
 
@@ -121,6 +127,30 @@ class Platform(pygame.sprite.Sprite):
 
     def update(self, scroll):
         self.rect.y += scroll
+
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
+
+class BluePlatform(pygame.sprite.Sprite):
+    def __init__(self, x, y, width):
+        #super().__init__(x, y, width)
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.transform.scale(blue_platform_image, (width, 10))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.direction = 1
+        self.max_distance = 30
+        self.initial_x = x
+
+    def update(self, scroll):
+        self.rect.y += scroll
+     
+        self.rect.x += self.direction  # Move the platform horizontally
+        # Change direction if the platform reaches the maximum distance or screen edges
+        if abs(self.rect.x - self.initial_x) >= self.max_distance or self.rect.right >= 800 or self.rect.left <= 0:
+            self.direction *= -1
 
         if self.rect.top > SCREEN_HEIGHT:
             self.kill()
