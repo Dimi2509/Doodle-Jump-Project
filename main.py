@@ -3,6 +3,7 @@ import pygame
 import random
 import neat
 import os
+import visualize
 
 # Initialize pygame
 pygame.init()
