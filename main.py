@@ -3,7 +3,7 @@ import pygame
 import random
 import neat
 import os
-from visualize import draw_net, plot_stats
+#from visualize import draw_net, plot_stats
 import math
 
 # Initialize pygame
@@ -68,6 +68,8 @@ class Doodle():
         self.score = 0
         self.scroll = 0
         self.platcoll = False
+        self.dy = 0
+        self.dx = 0
     def move_l(self):
         # Update x position
         self.rect.x -= 10
@@ -84,43 +86,44 @@ class Doodle():
         self.scroll = 0
         self.collided = False
 
-        dx = 10
-        dy = 0
+        self.dx = 10
+        self.dy = 0
         # Gravity
         self.vel_y += GRAVITY
-        dy += self.vel_y
+        self.dy += self.vel_y
 
         # Limit Screen
-        if self.rect.left - dx < 0:
-            self.rect.left += dx
-        if self.rect.right + dx > SCREEN_WIDTH:
-            self.rect.right -= dx 
+        if self.rect.left - self.dx < 0:
+            self.rect.left += self.dx
+        if self.rect.right + self.dx > SCREEN_WIDTH:
+            self.rect.right -= self.dx 
         
         # Platform Collision
         for platform in platform_group:
             # Collision in the y direcction
-            if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+            if platform.rect.colliderect(self.rect.x, self.rect.y + self.dy, self.width, self.height):
                 # Apply collision only when falling
                 if self.rect.bottom < platform.rect.centery:
                     if self.vel_y > 0:
                         self.rect.bottom = platform.rect.top
-                        dy = 0
+                        self.dy = 0
                         self.vel_y = -20
                         self.collided = True
 
         # update y position after collision              
-        self.rect.y += dy + self.scroll
+        self.rect.y += self.dy + self.scroll
 
+    def scroll_scenario(self):
+        if self.vel_y > 0:
+            self.dy = 0
         # Scroll scenario
         if self.rect.top <= SCROLL_THRESH:
             if self.vel_y < 0:
                 # Move platforms opposite to player movement only when going up
-                self.scroll = -dy
+                self.scroll = -self.dy
                 # Add score
-                self.score += abs(dy//10)
+                self.score += abs(self.dy//10)
                 
-
-
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False),(self.rect.x - 20, self.rect.y - 15))
 
@@ -210,7 +213,7 @@ def Game(genome, config):
         if len(platform_group) < MAX_PLATFORMS:
             platform = create_platform(platform)
             platform_group.add(platform)
-
+        
         # Draw platforms
         platform_group.draw(screen)
 
@@ -218,6 +221,7 @@ def Game(genome, config):
         for x, doodler in enumerate(doodlers):
             doodler.draw()
             doodler.collide()
+            doodler.scroll_scenario()
             # Update positive fitness if doodler collides on platform only one time
             if doodler.collided and not doodler.platcoll:
                 ge[x].fitness += 10
@@ -226,13 +230,11 @@ def Game(genome, config):
     
             # Update negative fitness if doodler collides on platform more than one time
             if doodler.collided and doodler.platcoll:
-                ge[x].fitness -= 2   
+                ge[x].fitness -= 1   
                 #print(ge[x].fitness)
             
             # Get closes platform's distances
             dist_top, dist_bot = doodler.get_closest_pl()
-            first_plat = platform_group.sprites()[0].rect.x
-            second_plat = platform_group.sprites()[1].rect.x
 
             # NN output
             output = nets[x].activate((doodler.rect.x, doodler.rect.y, dist_top, dist_bot, doodler.vel_y))
@@ -247,13 +249,13 @@ def Game(genome, config):
                 doodler.stay()
 
             if ge[x].fitness < 0:
-                ge[x].fitness -= 2
+                ge[x].fitness -= 1
                 nets.pop(x)
                 ge.pop(x)
                 doodlers.pop(x)
     
 
-        platform_group.update(doodler.scroll)
+            platform_group.update(doodler.scroll)
 
         # Remove doodler safely if it falls off the screen, decrease fitness and remove its genome and neural network
         doodlers_to_remove = []
