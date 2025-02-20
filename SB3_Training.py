@@ -7,8 +7,8 @@ import datetime
 import os
 from stable_baselines3.common.callbacks import CheckpointCallback
 
-models_dir = f"models/PPO_{datetime.datetime.now().strftime('%d_%m_%y')}/"
-logdir = f"logs/PPO_{datetime.datetime.now().strftime('%d_%m_%y')}/"
+models_dir = f"models/PPO_{datetime.datetime.now().strftime('%d-%m-%y')}_{int(time.time())}/"
+logdir = f"logs/PPO_{datetime.datetime.now().strftime('%d-%m-%y')}_{int(time.time())}/"
 #models_dir = f"models/PPO_{int(time.time())}/"
 #logdir = f"logs/PPO_{int(time.time())}/"
 

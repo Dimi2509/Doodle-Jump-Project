@@ -29,7 +29,7 @@ FPS = 60
 
 # Game variables
 GRAVITY = 1
-MAX_PLATFORMS = 6
+MAX_PLATFORMS = 8
 SCROLL_THRESH = 225
 
 # Colours
@@ -237,8 +237,8 @@ class DoodleEnv(gym.Env):
 
         # Height Based Reward
         reward += (self.doodler.current_height - self.last_height) * 1
-        if self.doodler.current_height > 400:
-            reward += 0.5 
+        # if self.doodler.current_height > 400:
+        #     reward += 0.05 
 
         reward += (self.doodler.score - self.previous_score) * 1.2 
 
@@ -252,8 +252,8 @@ class DoodleEnv(gym.Env):
 
             # Encourage agent to take longer horizontal jumps rather than falling 
             horizontal_distance_jump = abs(self.doodler.last_platform.rect.centerx - self.doodler.visited_platforms[-1].rect.centerx)
-            if horizontal_distance_jumo > 225:
-                print(f"Big horizontal jump taken with distance of {horizontal_distance_jump}")
+            if horizontal_distance_jump > 225:
+                #print(f"Big horizontal jump taken with distance of {horizontal_distance_jump}")
                 reward += 12
 
             self.doodler.visited_platforms.append(self.doodler.last_platform)
@@ -291,7 +291,7 @@ class DoodleEnv(gym.Env):
             #print(f"New Record Height {self.record_height}")
             reward += 20  # Reward for reaching new record height
         
-        #print(f"Reward: {reward}")
+        print(f"Reward: {reward}")
         return reward
 
 if __name__ == '__main__':
